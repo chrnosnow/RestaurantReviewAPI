@@ -1,4 +1,4 @@
-package com.codecademy.DiningReviewAPI;
+package com.codecademy.RestaurantReviewAPI;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

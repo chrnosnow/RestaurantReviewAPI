@@ -1,7 +1,7 @@
-package com.codecademy.DiningReviewAPI.controllers;
+package com.codecademy.RestaurantReviewAPI.controllers;
 
-import com.codecademy.DiningReviewAPI.entities.User;
-import com.codecademy.DiningReviewAPI.repositories.UserRepository;
+import com.codecademy.RestaurantReviewAPI.entities.User;
+import com.codecademy.RestaurantReviewAPI.repositories.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,10 +1,9 @@
-package com.codecademy.DiningReviewAPI.entities;
+package com.codecademy.RestaurantReviewAPI.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
@@ -18,7 +17,9 @@ public class User {
     @Column(unique = true, updatable = false, nullable = false)
     private String name;
     private String city;
+
     private String state;
+    @Column(columnDefinition = "VARCHAR(10)")
     private String code;
     @Column(name="PEANUT_ALLERGY")
     private Boolean peanutAllergy;
