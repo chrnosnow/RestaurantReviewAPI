@@ -60,31 +60,6 @@ public class UserController {
         User userToUpdate = userToUpdateOptional.get();
         User userPatched = applyPatchToUser(patch, userToUpdate);
         return this.userRepository.save(userPatched);
-
-//        if (user.getCity()!=null){
-//            userToUpdate.setCity(user.getCity());
-//        }
-//
-//        if (user.getState()!=null){
-//            userToUpdate.setState(user.getState());
-//        }
-//
-//        if (user.getCode()!=null){
-//            userToUpdate.setCode(user.getCode());
-//        }
-//
-//        if (user.getPeanutAllergy()!=null){
-//            userToUpdate.setPeanutAllergy(user.getPeanutAllergy());
-//        }
-//
-//        if (user.getEggAllergy()!=null){
-//            userToUpdate.setEggAllergy(user.getEggAllergy());
-//        }
-//
-//        if (user.getDairyAllergy()!=null){
-//            userToUpdate.setDairyAllergy(user.getDairyAllergy());
-//        }
-//        return this.userRepository.save(userToUpdate);
     }
 
     private User applyPatchToUser(JsonPatch patch, User targetUser) {
