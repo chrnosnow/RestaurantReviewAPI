@@ -2,8 +2,6 @@ package com.codecademy.RestaurantReviewAPI.repositories;
 
 import com.codecademy.RestaurantReviewAPI.entities.Review;
 
-import com.codecademy.RestaurantReviewAPI.enums.ReviewStatus;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -12,8 +10,6 @@ import java.util.List;
 
 public interface ReviewRepository extends CrudRepository<Review, Long> {
     List<Review> findAllByUserNameOrderByIdDesc(String userName);
-
-    List<Review> findAllByRestaurantIdOrderByUserNameAsc(Long restaurantId);
 
     List<Review> findAllByRestaurantId(Long id);
 

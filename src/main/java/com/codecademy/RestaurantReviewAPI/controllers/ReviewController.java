@@ -41,45 +41,41 @@ public class ReviewController {
         return (List<Review>) this.reviewRepository.findAll();
     }
 
+    //get all reviews made by a user
     @GetMapping("/user/{username}")
     public List<Review> getAllUserReviews(@PathVariable("username") String userName) {
-        Optional<User> userOptional = this.userRepository.findByNameIgnoreCase(userName);
-        if (!userOptional.isPresent() || !this.userRepository.existsUserByNameIgnoreCase(userName)) {
+        if (!this.userRepository.existsUserByNameIgnoreCase(userName)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
         return this.reviewRepository.findAllByUserNameOrderByIdDesc(userName);
     }
 
     //get all reviews of a restaurant
     @GetMapping("/restaurant/{restaurantid}")
     public List<Review> getAllRestaurantReviews(@PathVariable("restaurantid") Long id) {
-        Optional<Restaurant> restaurantOptional = this.restaurantRepository.findById(id);
-        if (!restaurantOptional.isPresent() || !this.restaurantRepository.existsById(id)) {
+        if (!this.restaurantRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
         return this.reviewRepository.findAllByRestaurantId(id);
     }
 
-
     @PostMapping("/user/{userid}")
     public Review submitReview(@PathVariable("userid") Long id, @RequestBody Review review) {
-        if (this.userRepository.findById(id).equals(this.userRepository.findByNameIgnoreCase(review.getUserName()))) {
-            Optional<User> userOptional = this.userRepository.findById(id);
-            Optional<Restaurant> restaurantOptional = this.restaurantRepository.findById(review.getRestaurantId());
+        Optional<User> userOptional = this.userRepository.findById(id);
+        Optional<Restaurant> restaurantOptional = this.restaurantRepository.findById(review.getRestaurantId());
 
-            if (!userOptional.isPresent() || !this.userRepository.existsUserByNameIgnoreCase(review.getUserName())) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Create a user account first!");
-            }
+        if (userOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Create a user account first!");
+        }
 
-            if (!restaurantOptional.isPresent() || !this.restaurantRepository.existsById(review.getRestaurantId())) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Restaurant doesn't exist!");
-            }
+        if (restaurantOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Restaurant doesn't exist!");
+        }
 
+        boolean sameUser = userOptional.equals(this.userRepository.findByNameIgnoreCase(review.getUserName()));
+        if (sameUser) {
             review.setStatus(ReviewStatus.PENDING);
-            Review pendingReview = this.reviewRepository.save(review);
-            return pendingReview;
+            return this.reviewRepository.save(review);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username might not match the user id.");
         }
@@ -89,17 +85,18 @@ public class ReviewController {
     @PatchMapping("/{userid}/{reviewid}")
     public Review updateReview(@PathVariable("userid") Long userId, @PathVariable("reviewid") Long reviewId,
                                @RequestBody JsonPatch patch) {
-        if (this.userRepository.findById(userId).equals(this.userRepository.findByNameIgnoreCase(this.reviewRepository.findById(reviewId).get().getUserName()))) {
-            Optional<User> userOptional = this.userRepository.findById(userId);
-            Optional<Review> reviewOptional = this.reviewRepository.findById(reviewId);
-            if (!userOptional.isPresent() || !this.userRepository.existsById(userId)) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            }
+        Optional<User> userOptional = this.userRepository.findById(userId);
+        Optional<Review> reviewOptional = this.reviewRepository.findById(reviewId);
+        if (userOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
 
-            if (!reviewOptional.isPresent() || !this.reviewRepository.existsById(reviewId)) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-            }
+        if (reviewOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
 
+        boolean sameUser = userOptional.equals(this.userRepository.findByNameIgnoreCase(reviewOptional.get().getUserName()));
+        if (sameUser) {
             Review reviewToUpdate = reviewOptional.get();
             Review reviewPatched = applyPatchToReview(patch, reviewToUpdate);
             reviewToUpdate.setStatus(ReviewStatus.PENDING);
@@ -107,7 +104,18 @@ public class ReviewController {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username might not match the user id.");
         }
+    }
 
+    @DeleteMapping("/{id}")
+    public Review deleteReview(@PathVariable("id") Long id) {
+        Optional<Review> reviewToDeleteOptional = this.reviewRepository.findById(id);
+        if (reviewToDeleteOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        Review reviewToDelete = reviewToDeleteOptional.get();
+        this.reviewRepository.delete(reviewToDelete);
+        return reviewToDelete;
     }
 
     private Review applyPatchToReview(JsonPatch patch, Review targetReview) {
@@ -121,19 +129,4 @@ public class ReviewController {
             throw new RuntimeException(e);
         }
     }
-
-    @DeleteMapping("/{id}")
-    public Review deleteReview(@PathVariable("id") Long id) {
-        Optional<Review> reviewToDeleteOptional = this.reviewRepository.findById(id);
-        if (!reviewToDeleteOptional.isPresent() || !this.reviewRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        Review reviewToDelete = reviewToDeleteOptional.get();
-        this.reviewRepository.delete(reviewToDelete);
-        return reviewToDelete;
-    }
-
-
-
 }

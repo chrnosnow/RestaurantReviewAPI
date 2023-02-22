@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import javax.swing.text.html.Option;
-import java.beans.Transient;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,8 +14,6 @@ public interface RestaurantRepository extends CrudRepository<Restaurant, Long> {
     Iterable<Restaurant> findAllByOrderByNameAsc();
 
     Optional<Restaurant> findByNameAndCodeIgnoreCase(String name, String zipcode);
-
-    Iterable<Restaurant> findByCodeOrderByCodeDesc(String zipcode);
 
     List<Restaurant> findByCodeAndPeanutAvgScoreIsNotNullOrderByPeanutAvgScoreDesc(String zipcode);
 

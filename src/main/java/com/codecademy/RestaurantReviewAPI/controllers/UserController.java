@@ -32,19 +32,18 @@ public class UserController {
     @GetMapping("/user/{username}")
     public User getUserByName(@PathVariable("username") String userName){
         Optional<User> userOptional = this.userRepository.findByNameIgnoreCase(userName);
-        if (!userOptional.isPresent() || !this.userRepository.existsUserByNameIgnoreCase(userName)){
+        if (userOptional.isEmpty() || !this.userRepository.existsUserByNameIgnoreCase(userName)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        User user = userOptional.get();
-        return user;
+        return userOptional.get();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@RequestBody User newUser) {
-        if (ObjectUtils.isEmpty(newUser.getName()) || this.userRepository.existsUserByNameIgnoreCase(newUser.getName())){
-            throw new ResponseStatusException((HttpStatus.BAD_REQUEST));
+        if (ObjectUtils.isEmpty(newUser.getName())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please input username and other details.");
         }
         return this.userRepository.save(newUser);
     }
@@ -53,13 +52,27 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public User updateUser(@PathVariable("username") String userName, @RequestBody JsonPatch patch){
         Optional<User> userToUpdateOptional = this.userRepository.findByNameIgnoreCase(userName);
-        if (!userToUpdateOptional.isPresent()){
+        if (userToUpdateOptional.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         User userToUpdate = userToUpdateOptional.get();
         User userPatched = applyPatchToUser(patch, userToUpdate);
         return this.userRepository.save(userPatched);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public User deleteUser(@PathVariable("id") Long id) {
+        Optional<User> userToDeleteOptional = this.userRepository.findById(id);
+        if (userToDeleteOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        User userToDelete = userToDeleteOptional.get();
+        this.userRepository.delete(userToDelete);
+        return userToDelete;
+
     }
 
     private User applyPatchToUser(JsonPatch patch, User targetUser) {
@@ -72,20 +85,5 @@ public class UserController {
             // TODO: 23/02/17 find a better way to handle this
             throw new RuntimeException(e);
         }
-    }
-
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public User deleteUser(@PathVariable("id") Long id) {
-        Optional<User> userToDeleteOptional = this.userRepository.findById(id);
-        if (!userToDeleteOptional.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        User userToDelete = userToDeleteOptional.get();
-        this.userRepository.delete(userToDelete);
-        return userToDelete;
-
     }
 }

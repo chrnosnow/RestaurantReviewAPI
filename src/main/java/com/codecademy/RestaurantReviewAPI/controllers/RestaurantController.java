@@ -3,7 +3,6 @@ package com.codecademy.RestaurantReviewAPI.controllers;
 import com.codecademy.RestaurantReviewAPI.entities.Restaurant;
 import com.codecademy.RestaurantReviewAPI.repositories.RestaurantRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,11 +38,16 @@ public class RestaurantController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Restaurant addRestaurant(@RequestBody Restaurant newRestaurant) {
-        if (ObjectUtils.isEmpty(newRestaurant.getName()) || ObjectUtils.isEmpty(newRestaurant.getCode())) {
+        String restaurantName = newRestaurant.getName();
+        String restaurantZipcode = newRestaurant.getCode();
+
+        if (Objects.isNull(restaurantName) || Objects.isNull(restaurantZipcode)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
-        if (this.restaurantRepository.findByNameAndCodeIgnoreCase(newRestaurant.getName(), newRestaurant.getCode()).isPresent()) {
+        Optional<Restaurant> restaurantOptional =
+                this.restaurantRepository.findByNameAndCodeIgnoreCase(restaurantName, restaurantZipcode);
+        if (restaurantOptional.isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Restaurant with given name and zip code already " +
                     "exists.");
         }
@@ -56,21 +60,20 @@ public class RestaurantController {
                                              @RequestParam(name = "allergy") String allergy) {
 
         List<Restaurant> list = null;
-        if (Objects.nonNull(code)) {
-            if (Objects.nonNull(allergy)) {
-                switch (allergy.toLowerCase()) {
-                    case "peanut":
-                        list = this.restaurantRepository.findByCodeAndPeanutAvgScoreIsNotNullOrderByPeanutAvgScoreDesc(code);
-                        break;
-                    case "egg":
-                        list = this.restaurantRepository.findByCodeAndEggAvgScoreIsNotNullOrderByEggAvgScoreDesc(code);
-                        break;
-                    case "dairy":
-                        list = this.restaurantRepository.findByCodeAndDairyAvgScoreIsNotNullOrderByDairyAvgScoreDesc(code);
-                        break;
-                    default:
-                        list = new ArrayList<>();
-                }
+        if (Objects.nonNull(code) && Objects.nonNull(allergy)) {
+
+            switch (allergy.toLowerCase()) {
+                case "peanut":
+                    list = this.restaurantRepository.findByCodeAndPeanutAvgScoreIsNotNullOrderByPeanutAvgScoreDesc(code);
+                    break;
+                case "egg":
+                    list = this.restaurantRepository.findByCodeAndEggAvgScoreIsNotNullOrderByEggAvgScoreDesc(code);
+                    break;
+                case "dairy":
+                    list = this.restaurantRepository.findByCodeAndDairyAvgScoreIsNotNullOrderByDairyAvgScoreDesc(code);
+                    break;
+                default:
+                    list = new ArrayList<>();
             }
         }
         return list;

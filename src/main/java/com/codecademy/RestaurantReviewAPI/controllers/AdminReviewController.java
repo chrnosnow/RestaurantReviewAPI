@@ -21,31 +21,28 @@ import java.util.Optional;
 public class AdminReviewController {
     private ReviewRepository reviewRepository;
     private RestaurantRepository restaurantRepository;
-    private UserRepository userRepository;
     private AdminRepository adminRepository;
 
     public AdminReviewController(ReviewRepository reviewRepository,
                                  RestaurantRepository restaurantRepository,
-                                 UserRepository userRepository, AdminRepository adminRepository) {
+                                 AdminRepository adminRepository) {
         this.reviewRepository = reviewRepository;
         this.restaurantRepository = restaurantRepository;
-        this.userRepository = userRepository;
         this.adminRepository = adminRepository;
     }
 
     @PutMapping("{adminid}/review/{id}")
-    public Review adminReview(@PathVariable("id") Long adminId, @PathVariable("id") Long reviewId,
+    public Review adminReview(@PathVariable("adminid") Long adminId, @PathVariable("id") Long reviewId,
                               @RequestBody StatusAdmin status) {
         Optional<AdminReviewAction> adminOptional = this.adminRepository.findById(adminId);
         Optional<Review> reviewOptional = this.reviewRepository.findById(reviewId);
 
-        if (!adminOptional.isPresent() || !reviewOptional.isPresent()) {
+        if (adminOptional.isEmpty() || reviewOptional.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
         Review review = reviewOptional.get();
         Optional<Restaurant> restaurantOptional = this.restaurantRepository.findById(review.getRestaurantId());
-
         try {
             review.setStatus(status.getStatus());
         } catch (IllegalArgumentException e) {
@@ -75,7 +72,7 @@ public class AdminReviewController {
     @GetMapping("accepted/restaurant/{id}")
     public List<Review> getRestaurantAccepted(@PathVariable("id") Long restaurantId) {
         Optional<Restaurant> restaurantOptional = this.restaurantRepository.findById(restaurantId);
-        if (!restaurantOptional.isPresent()) {
+        if (restaurantOptional.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Restaurant not found.");
         }
 
