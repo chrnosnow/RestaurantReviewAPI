@@ -1,6 +1,5 @@
 package com.codecademy.RestaurantReviewAPI.controllers;
 
-
 import com.codecademy.RestaurantReviewAPI.entities.Restaurant;
 import com.codecademy.RestaurantReviewAPI.entities.Review;
 import com.codecademy.RestaurantReviewAPI.entities.User;
@@ -95,7 +94,8 @@ public class ReviewController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        boolean sameUser = userOptional.equals(this.userRepository.findByNameIgnoreCase(reviewOptional.get().getUserName()));
+        boolean sameUser =
+                userOptional.equals(this.userRepository.findByNameIgnoreCase(reviewOptional.get().getUserName()));
         if (sameUser) {
             Review reviewToUpdate = reviewOptional.get();
             Review reviewPatched = applyPatchToReview(patch, reviewToUpdate);

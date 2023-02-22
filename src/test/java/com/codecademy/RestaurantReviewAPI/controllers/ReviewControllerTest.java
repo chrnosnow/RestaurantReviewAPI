@@ -2,18 +2,17 @@ package com.codecademy.RestaurantReviewAPI.controllers;
 
 import com.codecademy.RestaurantReviewAPI.DiningReviewApiApplication;
 import com.codecademy.RestaurantReviewAPI.entities.Review;
-import com.codecademy.RestaurantReviewAPI.entities.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = DiningReviewApiApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ReviewControllerTest {
@@ -23,6 +22,7 @@ class ReviewControllerTest {
 
     @Autowired
     private TestRestTemplate testRestTemplate;
+
     @Test
     public void shouldGetAllReviews() {
         ResponseEntity<Review[]> responseEntity = this.testRestTemplate.getForEntity("http://localhost:" + port +
@@ -62,9 +62,27 @@ class ReviewControllerTest {
         assertEquals(newReview.getRestaurantId(), reviewResponse.getRestaurantId());
     }
 
-//    @Test
-//    void updateReview() {
-//    }
+    @Test
+    public void shouldUpdateReview() {
+        String url = "http://localhost:" + port + "/api/v1/reviews/1/1";
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+        HttpHeaders reqHeaders = new HttpHeaders();
+        reqHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        String patchString = "[{\n" +
+                "    \"op\":\"replace\",\n" +
+                "    \"path\": \"/peanutScore\",\n" +
+                "    \"value\":1\n" +
+                "}]";
+
+        HttpEntity<String> requestEntity = new HttpEntity<String>(patchString, reqHeaders);
+        ResponseEntity<Review> responseEntity = restTemplate.exchange(url, HttpMethod.PATCH, requestEntity,
+                Review.class);
+        Review result = responseEntity.getBody();
+
+        assertEquals(1, result.getPeanutScore());
+    }
 
     @Test
     void shouldDeleteReview() {
@@ -74,7 +92,7 @@ class ReviewControllerTest {
     }
 
     @Test
-    public void shouldNotDeleteReviewIfDoesNotExist(){
+    public void shouldNotDeleteReviewIfDoesNotExist() {
         ResponseEntity<Void> resp = testRestTemplate.exchange("http://localhost:" + port +
                 "/api/v1/reviews/100", HttpMethod.DELETE, HttpEntity.EMPTY, Void.class);
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
